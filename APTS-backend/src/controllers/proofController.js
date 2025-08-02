@@ -6,13 +6,13 @@ export const proofSubmission = async(req, res)=>{
 
         if(!imageUrl) return res.status(400).json({message:'Image not provided'});
 
-        await Proof.create({
+        const proof = await Proof.create({
             user:req.user._id,
             imageUrl,
             submittedAt: new Date(),
         });
 
-        res.status(201).json({message:'Proof submitted suxxessfully!'});
+        res.status(201).json({status: true,message:'Proof submitted successfully!',proof});
     }catch(err){
         res.status(500).json({message:'Server error', error:err.message});
     }
