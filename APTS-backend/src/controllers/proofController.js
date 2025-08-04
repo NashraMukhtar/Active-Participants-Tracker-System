@@ -52,3 +52,22 @@ export const proofApproval = async(req, res)=>{
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 }
+
+export const getAllProofs = async(req, res)=>{
+    try{
+        const proofs = await Proof.find().populate('user', 'username email');
+        res.status(200).json({proofs});
+    }catch(err){
+        res.status(500).json({message:'server error', error:err.message});
+    }
+}
+
+export const deleteProof = async(req, res)=>{
+    try{
+        const result = await Proof.findByIdAndDelete(req.params.id);
+        if(!result)return ResizeObserver.status(404).json({message:'proof not found'});
+        res.status(200).json({message:'Proof deleted successfully!'});
+    }catch(err){
+        res.status(500).json({message:'server error', error:err.message});
+    }
+}

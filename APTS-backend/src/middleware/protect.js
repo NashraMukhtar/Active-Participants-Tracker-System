@@ -22,8 +22,21 @@ export const isLogin = async(req, res, next)=>{
 }
 
 export const isAdmin = async(req, res, next)=>{
-        if(!req.user || req.user.role!=='admin'){
-            return res.status(403).json({message:'Access denied'});
+    let token;
+
+    if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
+        try{
+            token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const user = await User.findById(decoded.id);
+            if(user.role!=='admin'){
+                return res.status(403).json({message:'Access denied'});
+            }
+            next();
+        }catch(err){
+            res.status(401).json({message:'Not authorized, Token failed'});
         }
-        next();
+    }else{
+        res.status(401).json({message:'Token not provided'});
+    }
 }
