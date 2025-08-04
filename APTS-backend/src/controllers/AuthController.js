@@ -20,7 +20,7 @@ export const register = async(req, res)=>{
         res.status(201).json({message:'User created successfully!', user: {
             id:newUser._id,
             email:newUser.email,
-            username:newUser.email,
+            username:newUser.username,
             phoneNumber:newUser.phoneNumber
         }})
     }catch(err){
@@ -56,4 +56,16 @@ export const login = async(req, res)=>{
     }
 }
 
+export const makeMeAdmin = async(req, res)=>{
+    try{
+        const user = await User.findById(req.user._id);
 
+        if(!user)return res.status(404).json({message:'user not found'});
+
+        user.role = 'admin';
+        await user.save();
+        res.status(200).json({message:'you are now an admin'});
+    }catch (err) {
+        res.status(500).json({ message: 'Failed to make admin', error: err.message });
+    }
+}

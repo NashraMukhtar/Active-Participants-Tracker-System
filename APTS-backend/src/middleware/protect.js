@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-export const protect = async(req, res, next)=>{
+export const isLogin = async(req, res, next)=>{
     let token;
 
     if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
@@ -19,4 +19,11 @@ export const protect = async(req, res, next)=>{
     }else{
         res.status(401).json({message:'Token not provided'});
     }
+}
+
+export const isAdmin = async(req, res, next)=>{
+        if(!req.user || req.user.role!=='admin'){
+            return res.status(403).json({message:'Access denied'});
+        }
+        next();
 }
