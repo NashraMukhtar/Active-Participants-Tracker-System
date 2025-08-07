@@ -8,14 +8,14 @@ const generateToken = (userId)=>{
 
 export const register = async(req, res)=>{
     try{
-        const {username, email, password, gender, age, country, city, area, phoneNumber} = req.body;
+        const {username, email, password, gender, age, country, city, area, phoneNumber, streak, lastProofDate, role} = req.body;
 
         const existing = await User.findOne({email});
         if(existing) return res.status(400).json({message:'User already exists'});
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await User.create({username, email, password:hashedPassword, gender, age, country, city, area, phoneNumber});
+        const newUser = await User.create({username, email, password:hashedPassword, gender, age, country, city, area, phoneNumber, streak, lastProofDate, role});
 
         res.status(201).json({message:'User created successfully!', user: {
             id:newUser._id,
@@ -24,7 +24,7 @@ export const register = async(req, res)=>{
             phoneNumber:newUser.phoneNumber
         }})
     }catch(err){
-        res.status(500).error({message:'Server error',error:err.message});
+        res.status(500).json({message:'Server error',error:err.message});
     }
 }
 
@@ -94,5 +94,42 @@ export const deleteUser = async(req, res)=>{
         res.status(200).json({message:'User deleted successfully!'});
     }catch(err){
         res.status(500).json({message: 'Failed to delete user', error: err.message});
+    }
+}
+
+export const demoteUsers = async(req, res)=>{
+    try{
+        const activeUsers = await User.find({role:'active'});
+
+        const today = new Date();
+        const todayUTC = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+        console.log(`today general date: ${today}`);
+        console.log(`today UTC date: ${todayUTC}`);
+
+        if(!activeUsers || activeUsers.length===0){
+            console.log('no active users present');
+            return;
+        }
+
+        for(const user of activeUsers){
+
+            const lastdate = new Date(user.lastProofDate);
+            const lastDateUTC = Date.UTC(lastdate.getUTCFullYear(), lastdate.getUTCMonth(), lastdate.getUTCDate());
+
+            const differenceInDays = todayUTC-lastDateUTC;
+            console.log(`lastDateUTC before division: ${differenceInDays}`);
+            const diffInDaysAfterDiv = differenceInDays/(1000*60*60*24);
+            console.log(`lastDateUTC after division: ${diffInDaysAfterDiv}`);
+
+            if(diffInDaysAfterDiv>=3){
+                user.role='entry';
+                user.streak=0;
+                await user.save();
+                console.log(`${user.username} demoted successfully!`);
+            }
+        }
+        console.log('No users to demote!');
+    }catch(err){
+        console.log(`Error demoting users, ERROR: ${err.message}`);
     }
 }
