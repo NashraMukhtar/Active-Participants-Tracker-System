@@ -9,11 +9,11 @@ const UserSchema = new mongoose.Schema({
     city:        { type: String, required: true },
     area:      { type: String, required: true },
     phoneNumber: {
-    type: String,
-    required: true,
-    match: [/^(\+?\d{10,15})$/, 'Please enter a valid phone number'],
-    unique: true
-    },
+        type: String,
+        required: true,
+        match: [/^(\+?\d{10,15})$/, 'Please enter a valid phone number'],
+        unique: true
+        },
     streak: {type: Number,default: 0},
     lastProofDate: {type: Date},
 

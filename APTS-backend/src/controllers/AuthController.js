@@ -10,8 +10,11 @@ export const register = async(req, res)=>{
     try{
         const {username, email, password, gender, age, country, city, area, phoneNumber, streak, lastProofDate, role} = req.body;
 
-        const existing = await User.findOne({email});
-        if(existing) return res.status(400).json({message:'User already exists'});
+        const existingEmail = await User.findOne({email});
+        if(existingEmail) return res.status(400).json({message:'User with this email already exists'});
+
+        const existingNumber = await User.findOne({phoneNumber});
+        if(existingNumber) return res.status(400).json({message:'User with this number already exists'});
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -103,8 +106,6 @@ export const demoteUsers = async(req, res)=>{
 
         const today = new Date();
         const todayUTC = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-        console.log(`today general date: ${today}`);
-        console.log(`today UTC date: ${todayUTC}`);
 
         if(!activeUsers || activeUsers.length===0){
             console.log('no active users present');
@@ -117,9 +118,7 @@ export const demoteUsers = async(req, res)=>{
             const lastDateUTC = Date.UTC(lastdate.getUTCFullYear(), lastdate.getUTCMonth(), lastdate.getUTCDate());
 
             const differenceInDays = todayUTC-lastDateUTC;
-            console.log(`lastDateUTC before division: ${differenceInDays}`);
             const diffInDaysAfterDiv = differenceInDays/(1000*60*60*24);
-            console.log(`lastDateUTC after division: ${diffInDaysAfterDiv}`);
 
             if(diffInDaysAfterDiv>=3){
                 user.role='entry';
