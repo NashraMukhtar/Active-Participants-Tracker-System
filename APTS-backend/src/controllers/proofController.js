@@ -1,10 +1,10 @@
 import Proof from '../models/Proof.js';
 import User from '../models/User.js';
+import { cloudinary } from '../config/cloudinary.js';
 
 export const proofSubmission = async(req, res)=>{
     try{
-        const imageUrl = req.file?.path;
-        if(!imageUrl) return res.status(400).json({message:'image not provided'});
+        if(!req.file) return res.status(400).json({message:'image not provided'});
 
         const user = await User.findById(req.user._id);
         if(!user) return res.status(400).json({message:'user not found'});
@@ -13,7 +13,8 @@ export const proofSubmission = async(req, res)=>{
 
         const proof = await Proof.create({
             user:req.user._id,
-            imageUrl,
+            imageUrl: req.file.path,
+            public_id: req.file.filename,
             submittedAt: nowUTC,
         });
 
@@ -106,5 +107,27 @@ export const deleteProof = async(req, res)=>{
         res.status(200).json({message:'Proof deleted successfully!'});
     }catch(err){
         res.status(500).json({message:'server error', error:err.message});
+    }
+}
+
+export const deleteExpiredProofs = async(req, res)=>{
+    try{
+        const cutOff = new Date(Date.now()-24*60*60*1000);
+
+        const expiredProofs = await Proof.find({submittedAt: {$lt: cutOff}});
+
+        if(!expiredProofs.length){
+            console.log('No expired proofs');
+            return;
+        }else{
+            for(let proof of expiredProofs){
+                await cloudinary.uploader.destroy(proof.public_id);
+                await Proof.findByIdAndDelete(proof._id);
+            }
+            console.log("proofs older that 24 hours deleted successfully!");
+        }
+
+    }catch(err){
+        console.error("Error deleting expired proofs", err.message);
     }
 }

@@ -10,7 +10,7 @@ router.post('/login', login);
 router.get('/get-all-users', isAdmin, allUsers);
 router.delete('/delete/:id', isAdmin, deleteUser);
 router.post('/make-admin', isLogin, makeMeAdmin);
-router.post('/submit-proof', isLogin, upload.single('image') ,proofSubmission);
+router.post('/submit-proof', isLogin, upload.single('image'), proofSubmission);
 router.get('/get-all-proofs', isAdmin, getAllProofs);
 router.delete('/delete/proof/:id', isAdmin, deleteProof);
 router.post('/approve/:id', isAdmin, proofApproval);
