@@ -1,6 +1,10 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import { sendEmail } from '../utils/sendMail.js';
+
+dotenv.config();
 
 const generateToken = (userId)=>{
     return jwt.sign({id:userId}, process.env.JWT_SECRET, {expiresIn:'7d',});
@@ -130,5 +134,47 @@ export const demoteUsers = async(req, res)=>{
         console.log('No users to demote!');
     }catch(err){
         console.log(`Error demoting users, ERROR: ${err.message}`);
+    }
+}
+
+export const requestPasswordReset = async(req, res)=>{
+    try{
+        const {email} = req.body;
+        const user = await User.findOne({email});
+        if(!user) return res.status(400).json({message:'User Not Found'});
+
+        console.log(`user to send mail: ${user.email}`);
+
+        const resetToken = jwt.sign({id:user._id}, process.env.JWT_SECRET, {expiresIn: '15m'});
+
+        // const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        // const message = `Click the link below to reset your password: \n\n ${resetPasswordURL}`;
+        const message = `Click the link below to reset your password, your reset token: ${resetToken}`;
+
+        await sendEmail(user.email, 'Password Reset Request', message);
+
+        res.status(200).json({message:'Reset password email sent successfully!'});
+    }catch(err){
+        res.status(500).json({error:err.message});
+    }
+}
+
+export const resetPassword = async(req, res)=>{
+    try{
+        const {token} = req.params;
+        const {password} = req.body;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(decoded.id);
+        if(!user) return res.status(400).json({message:"user not found"});
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        await user.save();
+
+        res.status(200).json({message:"password reset successfully!"});
+    }catch(err){
+        res.status(500).json({message:'Invalid or expired token',error:err.message});
     }
 }

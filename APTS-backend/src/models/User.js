@@ -17,6 +17,7 @@ const UserSchema = new mongoose.Schema({
     streak: {type: Number,default: 0},
     lastProofDate: {type: Date},
 
+
     role:{
         type:String,
         enum:['entry', 'active', 'admin'],
