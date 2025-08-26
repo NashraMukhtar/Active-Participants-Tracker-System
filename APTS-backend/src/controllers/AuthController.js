@@ -12,7 +12,7 @@ const generateToken = (userId)=>{
 
 export const register = async(req, res)=>{
     try{
-        const {username, email, password, gender, age, country, city, area, phoneNumber, streak, lastProofDate, role} = req.body;
+        const {username, email, password, gender, age, country, city, area, phoneNumber} = req.body;
 
         const existingEmail = await User.findOne({email});
         if(existingEmail) return res.status(400).json({message:'User with this email already exists'});
@@ -22,7 +22,7 @@ export const register = async(req, res)=>{
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await User.create({username, email, password:hashedPassword, gender, age, country, city, area, phoneNumber, streak, lastProofDate, role});
+        const newUser = await User.create({username, email, password:hashedPassword, gender, age, country, city, area, phoneNumber});
 
         res.status(201).json({message:'User created successfully!', user: {
             id:newUser._id,
