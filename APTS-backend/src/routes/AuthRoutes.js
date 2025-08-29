@@ -1,5 +1,5 @@
 import express from 'express';
-import {register, login, makeMeAdmin, allUsers, deleteUser, requestPasswordReset, resetPassword} from '../controllers/AuthController.js';
+import {register, login, logout, makeMeAdmin, allUsers, deleteUser, requestPasswordReset, resetPassword} from '../controllers/AuthController.js';
 import { proofSubmission, getAllProofs, deleteProof } from '../controllers/proofController.js';
 import { isLogin, isAdmin } from '../middleware/protect.js';
 import {upload} from '../middleware/multer.js';
@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/logout',isLogin, logout);
 router.get('/get-all-users', isAdmin, allUsers);
 router.delete('/delete/:id', isAdmin, deleteUser);
 router.post('/make-admin', isLogin, makeMeAdmin);

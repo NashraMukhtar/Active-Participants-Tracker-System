@@ -47,6 +47,17 @@ export const login = async(req, res)=>{
 
         const token = generateToken(user._id);
 
+        const isProd = process.env.NODE_ENV==='production';
+        const sameSite = isProd? 'none':'lax';
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite,
+            maxAge: 7*24*60*60*1000,
+            path: '/',
+        })
+
         res.status(200).json({
             message:'Logged in successfully!',
             token,
@@ -60,6 +71,23 @@ export const login = async(req, res)=>{
         });
     }catch(err){
         res.status(500).json({message:'server error', error:err.message});
+    }
+}
+
+export const logout = async(req, res)=>{
+    try{
+        const isProd = process.env.NODE_ENV === 'production';
+        const sameSite = isProd? 'none':'lax'
+
+        res.clearCookie('token', {
+            httpOnly:true,
+            secure: isProd,
+            sameSite,
+            path:'/',
+        })
+        res.status(200).json({message:'Logged out successfully!'});
+    }catch(err){
+        res.status(500).json({error:err.message});
     }
 }
 
